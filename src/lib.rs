@@ -154,7 +154,7 @@ mod NestedTemplate_tests {
     use super::*;
 
     #[test]
-    fn test_render() {
+    fn test_successful_render() {
         let mut parent = NestedTemplate::new("<!DOCTYPE html><body>{first_child}</body>");
         let mut first_child = NestedTemplate::new("<div>This is a test</div><script>{second_child}</script>");
         let second_child = NestedTemplate::new("second_child");
@@ -162,6 +162,18 @@ mod NestedTemplate_tests {
         first_child.add_sub_template("second_child", second_child);
         parent.add_sub_template("first_child", first_child);
         assert_eq!(parent.render().unwrap(), "<!DOCTYPE html><body><div>This is a test</div><script>second_child</script></body>");
+    }
+
+    #[test]
+    fn test_failed_render() {
+        let mut parent = NestedTemplate::new("<!DOCTYPE html>{body}");
+        parent.add_sub_template("content", NestedTemplate::new("something"));
+
+        match parent.render() {
+            Ok(_) => panic!("NestedTemplate.render() worked with missing template"),
+            Err(ParseError::MissingTemplate(_)) => (),
+            Err(_) => panic!("NestedTemplate.render() threw wrong error"),
+        }
     }
 }
 
